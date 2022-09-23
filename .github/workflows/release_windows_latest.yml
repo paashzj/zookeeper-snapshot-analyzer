@@ -1,0 +1,55 @@
+name: Release Windows Latest
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  push_to_registries:
+    name: Push Docker image to multiple registries
+    runs-on: windows-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Set up jdk 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: package msi
+        run: gradle packageMsi
+      - name: rename msi
+        run: Move-Item build/compose/binaries/main/msi/zookeeper-snapshot-analyzer-1.0.0.msi zookeeper-snapshot-analyzer.msi
+      - uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: latest_windows_msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+
+      - name: Tag release
+        uses: tvdias/github-tagger@v0.0.2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          tag: latest_windows_msi
+
+      # Creates the new release with the binary as a release asset.
+      # If the previous Action was skipped, then this keeps the same tag as the
+      # previous release.
+      - name: Create new release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: "latest windows msi"
+          draft: false
+          name: "latest windows msi"
+          tag_name: latest_windows_msi
+          files: zookeeper-snapshot-analyzer.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }}
