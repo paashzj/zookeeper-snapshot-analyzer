@@ -58,6 +58,9 @@ compose.desktop {
         mainClass = "MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            modules("java.management")
+            modules("java.naming")
+            modules("java.security.jgss")
             packageName = "zookeeper-snapshot-analyzer"
             packageVersion = "1.0.0"
         }
